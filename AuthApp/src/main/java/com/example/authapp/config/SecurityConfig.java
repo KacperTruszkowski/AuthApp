@@ -1,5 +1,6 @@
 package com.example.authapp.config;
 
+import com.example.authapp.service.CustomUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,14 +20,16 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final ObjectMapper objectMapper;
+    private final CustomUserDetailsService customUserDetailsService;
     private final RestAuthenticationSuccessHandler successHandler;
     private final RestAuthenticationFailureHandler failureHandler;
     private final String secret;
 
-    public SecurityConfig(ObjectMapper objectMapper, RestAuthenticationSuccessHandler successHandler,
+    public SecurityConfig(ObjectMapper objectMapper, CustomUserDetailsService customUserDetailsService, RestAuthenticationSuccessHandler successHandler,
                           RestAuthenticationFailureHandler failureHandler,
                           @Value("${jwt.secret}") String secret) {
         this.objectMapper = objectMapper;
+        this.customUserDetailsService = customUserDetailsService;
         this.successHandler = successHandler;
         this.failureHandler = failureHandler;
         this.secret = secret;
@@ -34,10 +37,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("test")
-                .password(passwordEncoder().encode("test"))
-                .roles("USER");
+        auth.userDetailsService(customUserDetailsService).passwordEncoder(passwordEncoder());
     }
 
     @Override
@@ -48,6 +48,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/v2/api-docs").permitAll()
                 .antMatchers("/webjars/**").permitAll()
                 .antMatchers("/swagger-resources/**").permitAll()
+                .antMatchers("/register").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)

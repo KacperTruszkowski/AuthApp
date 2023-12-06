@@ -1,6 +1,6 @@
 package com.example.authapp.service;
 
-import com.example.authapp.Mapper;
+import com.example.authapp.mapper.Mapper;
 import com.example.authapp.dto.UserDto;
 import com.example.authapp.exception.Exceptions;
 import com.example.authapp.model.User;
@@ -11,8 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.validation.ValidationException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -29,32 +29,19 @@ public class UserService {
         userRepository.save(mapper.mapToUserDocument(userDto));
     }
 
-    public String loginUser (UserDto userDto) {
-        User user = userRepository.findByLogin(userDto.getLogin());
-        return user.getLogin();
+    public void loginUser (UserDto userDto) {
+        userRepository.findByLogin(userDto.getLogin());
     }
 
     public void addItem(String login, String itemName) {
-        User user = userRepository.findByLogin(login);
-        if (user != null) {
-            User.Item newItem = new User.Item();
-            newItem.setName(itemName);
-            newItem.setOwner(login);
-            user.getItems().add(newItem);
-            userRepository.save(user);
-        }
+        userRepository.save(mapper.mapToItem(itemName, userRepository.findByLogin(login)));
     }
 
-    public List<User> getAll () {
-        return userRepository.findAll();
-    }
-
-    public List<User.Item> getAllItems(String login) {
+    public List<UserDto.ItemDto> getAllItems(String login) {
         User user = userRepository.findByLogin(login);
-        if (user != null) {
-            return user.getItems();
-        }
-        return new ArrayList<>();
+        return user.getItems().stream()
+                .map(Mapper::mapToItemDto)
+                .collect(Collectors.toList());
     }
 
     private void validate(UserDto userDto) {

@@ -4,7 +4,7 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,9 +14,9 @@ public class User {
 
     @Id
     private String id;
-    @NotBlank(message = "Login cannot be null or empty")
+    @NotNull(message = "Login cannot be null or empty")
     private String login;
-    @NotBlank(message = "Password cannot be null or empty")
+    @NotNull(message = "Password cannot be null or empty")
     private String password;
     private List<Item> items = new ArrayList<>();
 
